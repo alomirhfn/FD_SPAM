@@ -17,10 +17,10 @@ class InputReader:
     #   respective values.
     def read_txt(self):
 
-        file = open(self.path_txt)
+        file_name = open(self.path_txt)
 
         # Read a line at a time and store the information as a list of strings
-        for line in file:
+        for line in file_name:
 
             # Removes the end of line character.
             line = line.rstrip('\n')
@@ -35,10 +35,11 @@ class InputReader:
             value = line_data[1]
             self.sim_params[key] = value
 
-        file.close()
+        file_name.close()
 
         return self.sim_params
 
+    # ==================================================================================================================
     # Method that reads the input csv file and returns arrays corresponding to each initial information of each
     #  particle.
     def read_csv(self):
@@ -55,29 +56,23 @@ class InputReader:
         # Particle position
         v = np.genfromtxt(self.path_csv, delimiter=';', usecols=(5, 6, 7), dtype=np.float64)
 
-        # Particle temperature
-        temp = np.genfromtxt(self.path_csv, delimiter=';', usecols=(8,), dtype=np.float64)
-
         # Particle mass
         mass = np.genfromtxt(self.path_csv, delimiter=';', usecols=(9,), dtype=np.float64)
 
         # Particle density
         rho = np.genfromtxt(self.path_csv, delimiter=';', usecols=(10,), dtype=np.float64)
 
-        # Particle pressure
-        p = np.genfromtxt(self.path_csv, delimiter=';', usecols=(11,), dtype=np.float64)
-
         # Particle internal energy
-        e = np.genfromtxt(self.path_csv, delimiter=';', usecols=(12,), dtype=np.float64)
+        e = np.genfromtxt(self.path_csv, delimiter=';', usecols=(11,), dtype=np.float64)
 
         # Body forces
-        body = np.genfromtxt(self.path_csv, delimiter=';', usecols=(13, 14, 15), dtype=np.float64)
+        body = np.genfromtxt(self.path_csv, delimiter=';', usecols=(12, 13, 14), dtype=np.float64)
 
         # Initial stress state in Voight form
-        stress = np.genfromtxt(self.path_csv, delimiter=';', usecols=(16, 17, 18, 19, 20, 21), dtype=np.float64)
+        stress = np.genfromtxt(self.path_csv, delimiter=';', usecols=(15, 16, 17, 18, 19, 20), dtype=np.float64)
 
         # Normals of the boundaries
-        normals = np.genfromtxt(self.path_csv, delimiter=';', usecols=(22, 23, 24), dtype=np.float64)
+        normals = np.genfromtxt(self.path_csv, delimiter=';', usecols=(21, 22, 23), dtype=np.float64)
 
         # Careful: do not use vectors here like r or v. They will give the correct size times three!
         size = np.size(part_type)
@@ -97,15 +92,13 @@ class InputReader:
         # Getting rid of the NaN at positions 0. This avoids warnings in the future.
         r[0, :] = 1e32
         v[0, :] = 0.0
-        temp[0] = 0.0
         mass[0] = 0.0
         rho[0] = 1.0
-        p[0] = 0.0
         e[0] = 0.0
         body[0, :] = 0.0
         normals[0, :] = 0.0
         part_type[0] = -1
 
-        return part_type, np.reshape(r, (size, 3)), np.reshape(v, (size, 3)), np.reshape(temp, (size, 1)), \
-            np.reshape(mass, (size, 1)), np.reshape(rho, (size, 1)), np.reshape(p, (size, 1)), \
-            np.reshape(e, (size, 1)), np.reshape(body, (size, 3)), sigma, np.reshape(normals, (size, 3))
+        return part_type, np.reshape(r, (size, 3)), np.reshape(v, (size, 3)), np.reshape(mass, (size, 1)), \
+            np.reshape(rho, (size, 1)), np.reshape(e, (size, 1)), np.reshape(body, (size, 3)), sigma, \
+            np.reshape(normals, (size, 3))

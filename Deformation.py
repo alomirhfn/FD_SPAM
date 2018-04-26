@@ -105,19 +105,19 @@ class StrainTensors:
         # Principal stretches (values) of b (same as the the square of those of F).
         lamb_2, n = np.linalg.eig(b)
 
-        zro = np.where(lamb_2 <= 0)
-        nnum = np.where(lamb_2 == np.nan)
+        zro = np.where(lamb_2 <= 0)[0]
+        nnum = np.where(lamb_2 == np.nan)[0]
         sze = np.size(zro)
         sze2 = np.size(nnum)
 
         if sze > 0:
-            print()
+            print('Particles with invalid total deformations: negative eigenvalues')
             print(zro)
             print()
             lamb_2[zro] = 1
 
         if sze2 > 0:
-            print()
+            print('Particles with invalid total deformations: NaN results')
             print(nnum)
             print()
             lamb_2[nnum] = 1
@@ -136,19 +136,19 @@ class StrainTensors:
         # Principal stretches (values) and vectors of be. The latter are the same as those of Fe.
         lamb_e2, ne = np.linalg.eig(be)
 
-        zro = np.where(lamb_e2 <= 0)
-        nnum = np.where(lamb_e2 == np.nan)
+        zro = np.where(lamb_e2 <= 0)[0]
+        nnum = np.where(lamb_e2 == np.nan)[0]
         sze = np.size(zro)
         sze2 = np.size(nnum)
 
         if sze > 0:
-            print()
+            print('Particles with invalid elastic deformations: negative eigenvalues')
             print(zro)
             print()
             lamb_e2[zro] = 1
 
         if sze2 > 0:
-            print()
+            print('Particles with invalid elastic deformations: NaN results')
             print(nnum)
             print()
             lamb_e2[nnum] = 1

@@ -7,9 +7,10 @@ import numpy as np
 
 class Initialization:
 
-    def __init__(self, sim_params, init_r):
+    def __init__(self, sim_params, init_r, init_rho):
         self.user_params = sim_params
         self.init_pos = init_r
+        self.rho0 = np.min(init_rho[1:])
 
     # Returns initial interparticle distance. Assumes it is the greatest initial distance or that all particle are
     #  equidistant.
@@ -31,7 +32,28 @@ class Initialization:
 
     # Returns the initial step size. Assume equal for all particles.
     def get_dt0(self):
-        return float(self.user_params['stepSize'])
+        # User input initial time step.
+        dt1 = float(self.user_params['stepSize'])
+
+        # Minimum time step based on material parameters.
+        young, nu, bulk, shear = self.get_elastic_params()
+        c = max([math.sqrt(young / self.rho0), math.sqrt(bulk / self.rho0)])
+        dt2 = 0.2 * self.get_h() / c
+
+        dt = min(dt1, dt2)
+        if dt < dt1:
+            print()
+            print('Initial time step is different from input due to material parameters!')
+            print('Input value:', dt1)
+            print('New value:', dt)
+            usr = raw_input('Would you like to proceed with the simulation? Y/N:')
+            if str(usr).upper() == 'Y':
+                usr = raw_input('Enter the value of the time step you would like to use:')
+                dt = float(usr)
+            else:
+                exit()
+
+        return dt
 
     # Returns the number or steps based on the simulation time and initial step size.
     def get_num_steps(self):

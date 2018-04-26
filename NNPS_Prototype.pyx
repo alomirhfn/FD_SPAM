@@ -47,13 +47,14 @@ cpdef direct_search(double[:, ::1] r, long num_parts, double h, double dp, int s
 
                         # Find the periodic distance in the x-direction.
                         periodic_xdist = x_dist - x_max + x_min - dp
+                        abs_p_xdist = abs(periodic_xdist)   # Absolute periodic distance in the x-direction.
 
                         # If periodic distance is larger than the regular distance, then keep regular distance in x-direction
-                        if abs(periodic_xdist) >= x_dist:
+                        if abs_p_xdist >= x_dist:
                             periodic_xdist = x_dist
 
                         # Based only on the new x-coordinates, check if part_j is a neighbor of the particles.
-                        if abs(periodic_xdist) <= kr + tol:
+                        if abs_p_xdist <= kr + tol:
 
                             # The component is corrected with the periodic distance within the particle support.
                             r_ijx = periodic_xdist
@@ -64,11 +65,12 @@ cpdef direct_search(double[:, ::1] r, long num_parts, double h, double dp, int s
 
                     if y_dist > kr:
                         periodic_ydist = y_dist - y_max + y_min - dp
+                        abs_p_ydist = abs(periodic_ydist)
 
-                        if abs(periodic_ydist) >= y_dist:
+                        if abs_p_ydist >= y_dist:
                             periodic_ydist = y_dist
 
-                        if abs(periodic_ydist) <= kr + tol:
+                        if abs_p_ydist <= kr + tol:
                             r_ijy = periodic_ydist
 
                 # =========================================== Z-Coordinate =============================================
@@ -78,11 +80,12 @@ cpdef direct_search(double[:, ::1] r, long num_parts, double h, double dp, int s
 
                     if z_dist > kr:
                         periodic_zdist = z_dist - z_max + z_min - dp
+                        abs_p_zdist = abs(periodic_zdist)
 
-                        if abs(periodic_zdist) >= z_dist:
+                        if abs_p_zdist >= z_dist:
                             periodic_zdist = z_dist
 
-                        if abs(periodic_zdist) <= kr + tol:
+                        if abs_p_zdist <= kr + tol:
                             r_ijz = periodic_zdist
 
     # ==================================================================================================================
@@ -113,8 +116,8 @@ cpdef direct_search(double[:, ::1] r, long num_parts, double h, double dp, int s
 # ======================================================================================================================
 # =============================================== LINKED-LIST ==========================================================
 # ======================================================================================================================
-# This function receive a zeros array with the number of cells and max num of neighbors as dimensions and returns it
-#  filled with each cell's neighbor indices. It assumes that there are at least 3 cells in the periodic direction!
+# This function receive an array of zeros with the number of cells and max num of neighbors as dimensions, and returns
+#  it filled with each cell's neighbor indices. It assumes that there are at least 3 cells in the periodic direction!
 @boundscheck(False)
 @wraparound(False)
 @cython.cdivision(True)
@@ -337,12 +340,12 @@ cpdef create_grid(int num_cols, int num_rows, int num_layers, int[:, ::1] grid, 
 @boundscheck(False)
 @wraparound(False)
 @cython.cdivision(True)
-cpdef int allocate_particles(double[:, ::1] r, int num_cols, int num_rows, int num_cells, double h, int num_parts,
-                             int[:, ::1] cells_parts, int[::1] parts_cells, double dp):
+cpdef int allocate_particles(double[:, ::1] r, int num_cols, int num_rows, int num_layers, int num_cells, double h,
+                             int num_parts, int[:, ::1] cells_parts, int[::1] parts_cells, double dp, int pbc):
 
     cdef:
         int row, col, lay, part_cell_num, part, cell_num, pos, max_index = 0
-        double x, y, z, side = 2 * h
+        double x, y, z, kr = 2 * h
         double tol = 0.001 * dp
 
     for part in range(1, num_parts + 1):
@@ -352,9 +355,19 @@ cpdef int allocate_particles(double[:, ::1] r, int num_cols, int num_rows, int n
         z = r[part, 2]
 
         # Find the column, row and layer for each particle.
-        col = <int>((x - tol) / side)
-        row = <int>((y - tol) / side)
-        lay = <int>((z - tol) / side)
+        col = <int>((x - tol) / kr)
+        row = <int>((y - tol) / kr)
+        lay = <int>((z - tol) / kr)
+
+        # Correct the column, row, or layer number for the case where the periodic boundary allows particles to move
+        #  beyond the grid domain.
+        if pbc == 1:
+            col_max_idx = num_cols - 1
+            row_max_idx = num_rows - 1
+            lay_max_idx = num_layers - 1
+            if col > col_max_idx: col = col_max_idx
+            if row > row_max_idx: row = row_max_idx
+            if lay > lay_max_idx: lay = lay_max_idx
 
         # Find the corresponding cell number for the particle and assign it to parts_cells.
         part_cell_num = col + row * num_cols + lay * num_cols * num_rows + 1
@@ -443,14 +456,15 @@ cpdef linked_list(double[:, ::1] r, int[::1] parts_cells, int[:, ::1] cells_part
 
                             # Find the periodic distance in the x-direction.
                             periodic_xdist = x_dist - x_max + x_min - dp
+                            abs_p_xdist = abs(periodic_xdist)
 
                             # If periodic distance is larger than the regular distance, then keep regular distance in
                             #  x-direction.
-                            if abs(periodic_xdist) >= x_dist:
+                            if abs_p_xdist >= x_dist:
                                 periodic_xdist = x_dist
 
                             # Based only on the new x-coordinates, check if part_j is a neighbor of the particles.
-                            if abs(periodic_xdist) <= kr + tol:
+                            if abs_p_xdist <= kr + tol:
 
                                 # The component is corrected with the periodic distance within the particle support.
                                 r_ijx = periodic_xdist
@@ -461,11 +475,12 @@ cpdef linked_list(double[:, ::1] r, int[::1] parts_cells, int[:, ::1] cells_part
 
                         if y_dist > kr:
                             periodic_ydist = y_dist - y_max + y_min - dp
+                            abs_p_ydist = abs(periodic_ydist)
 
-                            if abs(periodic_ydist) >= y_dist:
+                            if abs_p_ydist >= y_dist:
                                 periodic_ydist = y_dist
 
-                            if abs(periodic_ydist) <= kr + tol:
+                            if abs_p_ydist <= kr + tol:
                                 r_ijy = periodic_ydist
 
                     # ======================================= Z-Coordinate =============================================
@@ -475,11 +490,12 @@ cpdef linked_list(double[:, ::1] r, int[::1] parts_cells, int[:, ::1] cells_part
 
                         if z_dist > kr:
                             periodic_zdist = z_dist - z_max + z_min - dp
+                            abs_p_zdist = abs(periodic_zdist)
 
-                            if abs(periodic_zdist) >= z_dist:
+                            if abs_p_zdist >= z_dist:
                                 periodic_zdist = z_dist
 
-                            if abs(periodic_zdist) <= kr + tol:
+                            if abs_p_zdist <= kr + tol:
                                 r_ijz = periodic_zdist
 
                 # ======================================================================================================

@@ -1,8 +1,9 @@
 from __future__ import print_function
 import numpy as np
-import sys
 from cython cimport boundscheck, wraparound
 cimport cython
+from libc.stdio cimport scanf, printf
+from libc.stdlib cimport exit
 
 # ==================================================================================================================
 # This method returns the deformation gradient tensor, which corresponds to the total deformation if the update
@@ -27,6 +28,7 @@ cpdef deformation_gradient(int[::1] part_type, double[:, ::1] mass, double[:, ::
         long[:] singular
         long idx, part_i, part_j
         int row, col
+        char usr = 'Y'
 
     for idx in range(1, ipn + 1):
         part_i = ipn_pairs[idx, 0]
@@ -55,8 +57,9 @@ cpdef deformation_gradient(int[::1] part_type, double[:, ::1] mass, double[:, ::
 
     if singular.shape[0] > 1:
         print('Negative-indefinite Jacobian at particle(s) ', np.asarray(singular))
-        usr = input('Revise simulation!!! Would you like to continue? Y/N: ')
-        if str(usr).upper() == "N":
-            sys.exit()
+        printf('Revise simulation!!! Would you like to continue? Y/N: ')
+        scanf("%s", usr)
+        if usr == "N" or usr == "n":
+            exit(0)
 
 # ==================================================================================================================

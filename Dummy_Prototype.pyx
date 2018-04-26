@@ -32,8 +32,6 @@ cpdef dummy_particles(double[:, ::1] mass, double[:, ::1] rho, double[:, ::1] r_
                         piola[part_i, row, col] += ((piola[part_j, row, col] - rho[part_j, 0] * body[part_j, row] *
                                                      r_ij[idx, col]) * mass[part_j, 0] * w[idx, 0] / rho[part_j, 0]) / \
                                                    wsum[part_i]
-                        # piola[part_i, row, col] += (piola[part_j, row, col] * mass[part_j, 0] * w[idx, 0] /
-                        #                             rho[part_j, 0]) / wsum[part_i]
 
         elif part_type[part_i] == 1 and part_type[part_j] != 1:
 
@@ -43,8 +41,6 @@ cpdef dummy_particles(double[:, ::1] mass, double[:, ::1] rho, double[:, ::1] r_
                         piola[part_j, row, col] += ((piola[part_i, row, col] + rho[part_i, 0] * body[part_i, row] *
                                                      r_ij[idx, col]) * mass[part_i, 0] * w[idx, 1] / rho[part_i, 0]) / \
                                                    wsum[part_j]
-                        # piola[part_j, row, col] += (piola[part_i, row, col] * mass[part_i, 0] * w[idx, 1] /
-                        #                                 rho[part_i, 0]) / wsum[part_j]
 
 # ======================================================================================================================
 # Method that calculates the sum of the kernel for all dummy particles.

@@ -27,8 +27,8 @@ from Kernel_Prototype import kernel_calcs
 
 class Solver:
 
-    def __init__(self, params_list, init_r):
-        self.params = SimParameters.Initialization(params_list, init_r)
+    def __init__(self, params_list, init_r, init_rho):
+        self.params = SimParameters.Initialization(params_list, init_r, init_rho)
 
     def solve(self, part_type, r0, v0, rho0, mass, sigma0, e0, body, output_object):
 
@@ -150,7 +150,7 @@ class Solver:
 
         # Yielding criterion: EL = Perfect elasticity, VM = Von Mises (Perfect plasticity), DP = Drucker-Prager,
         # MC = Mohr-Coulomb, or MCC = Modified Cam-Clay.
-        y_criterion = 'VM'
+        y_criterion = 'DP'
 
         # Initial yield stress.
         sy[:] = cohesion
@@ -165,7 +165,7 @@ class Solver:
 
         # Kinematic viscosity for viscoplastic response.
         if cohesion > 0:
-            dyn_visc = mu0 / cohesion     # Pa.s (should be in the range of 0.001 to 1 young modulus).
+            dyn_visc = mu0 / cohesion     # Pa.s (should be in the range of 0.001 to 1000).
         else:
             dyn_visc = mu0
         exm = 1    # Exponent of the Pierce model of viscoplasticity. Set m = 1 for linear model (Bingham).
@@ -211,7 +211,8 @@ class Solver:
             create_grid(x_div, y_div, z_div, grid, pbc_option, pbc_x, pbc_y, pbc_z, x_max, y_max, z_max, dp, h)
 
             # Map the particles to their respective cells and vice-versa.
-            max_index = allocate_particles(r0, x_div, y_div, num_cells, h, num_parts, cells_parts, parts_cells, dp)
+            max_index = allocate_particles(r0, x_div, y_div, z_div, num_cells, h, num_parts, cells_parts, parts_cells,
+                                           dp, pbc_option)
             cells_parts = np.ascontiguousarray(cells_parts[:, 1:max_index])   # Gets rid of the first column.
 
             # t.tic()
@@ -312,8 +313,8 @@ class Solver:
                     parts_cells = np.zeros(num_parts + 1, dtype=int)
 
                     # Map the particles to their respective cells and vice-versa.
-                    max_index = allocate_particles(r, x_div, y_div, num_cells, h, num_parts, cells_parts, parts_cells,
-                                                   dp)
+                    max_index = allocate_particles(r, x_div, y_div, z_div, num_cells, h, num_parts, cells_parts,
+                                                   parts_cells, dp, pbc_option)
                     cells_parts = np.ascontiguousarray(cells_parts[:, 1:max_index])  # Gets rid of the first column.
 
                     # t.tic()
@@ -653,8 +654,5 @@ class Solver:
             step += 1
             t.toc('Step')
             print()
-
-            # if step == 5:
-            #     exit()
 
 # ======================================================================================================================

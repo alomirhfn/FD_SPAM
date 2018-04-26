@@ -117,14 +117,6 @@ class SingleStep:
         j[bound_parts] = 1
         t.toc('Cython Deformation gradient')
 
-        # t.tic()
-        # deform_object.deformation_gradient(part_type, mass, du_ij, rho, num_parts, ipn_pairs, dw, f_tot, f, j, dummy,
-        #                                    tol, digits)
-        # f_tot[bound_parts] = f[bound_parts] = np.identity(3)
-        # f_tot[np.abs(f_tot) < tol] = 0
-        # j[bound_parts] = 1
-        # t.toc('Deformation gradient')
-
         f_tot_t = np.transpose(f_tot, (0, 2, 1))    # Transpose of the deformation gradient.
         j_tot *= j
 
@@ -179,9 +171,6 @@ class SingleStep:
             const_object = ConstitutiveUpdate.ViscoPlasticity(el_model, y_criterion, c_model)
             const_object.solver(eps_e, eps_e_dev, je, xi, tau, bulk, shear, ce, aphi, apsi, sy, sy0, d, h_mod, eta, m,
                                 s_e, num_parts, stress_object, elast_object, reconst, step_size, tol, digits)
-
-            # const_object.solver_exact(eps_e, eps_e_dev, je, xi, tau, bulk, shear, ce, aphi, apsi, sy, sy0, d,
-            #                           h_mod, s_e, num_parts, stress_object, elast_object, reconst, tol, digits)
             t.toc('Constitutive update')
 
             # ====================================== RECONSTRUCT STRAIN TENSORS ========================================
